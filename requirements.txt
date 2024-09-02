@@ -1,9 +1,11 @@
 asgiref                  
-Django                   
+Django>=3.0,<4.0
 django-cors-headers      
 djangorestframework      
+gunicorn
 pip                      
 rest_framework_simplejwt
 setuptools               
 sqlparse                 
 typing_extensions        
+psycopg2-binary
