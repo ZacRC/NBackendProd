@@ -1,0 +1,9 @@
+asgiref                  
+Django                   
+django-cors-headers      
+djangorestframework      
+pip                      
+rest_framework_simplejwt
+setuptools               
+sqlparse                 
+typing_extensions        
