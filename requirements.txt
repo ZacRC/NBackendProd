@@ -10,3 +10,6 @@ sqlparse
 typing_extensions        
 psycopg2-binary
 django-cors-headers
+whisper
+django-storages
+boto3

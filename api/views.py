@@ -1,9 +1,14 @@
 from django.contrib.auth import authenticate
 from rest_framework import status
 from rest_framework.response import Response
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework_simplejwt.tokens import RefreshToken
-from .serializers import RegisterSerializer, LoginSerializer
+from rest_framework.permissions import IsAuthenticated
+from .serializers import RegisterSerializer, LoginSerializer, VideoSerializer
+from .models import Video
+import os
+import whisper
+from django.conf import settings
 
 @api_view(['POST'])
 def register(request):
@@ -39,3 +44,21 @@ def logout(request):
         return Response(status=status.HTTP_205_RESET_CONTENT)
     except Exception as e:
         return Response(status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def upload_video(request):
+    serializer = VideoSerializer(data=request.data)
+    if serializer.is_valid():
+        video = serializer.save(user=request.user)
+        transcription = transcribe_video(video.video_file.path)
+        video.transcription = transcription
+        video.save()
+        return Response(VideoSerializer(video).data, status=status.HTTP_201_CREATED)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+def transcribe_video(video_path):
+    model = whisper.load_model("base")
+    result = model.transcribe(video_path)
+    os.remove(video_path)  # Clean up the uploaded file
+    return result['text']
