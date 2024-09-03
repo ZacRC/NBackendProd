@@ -22,6 +22,8 @@ from rest_framework import status
 from .models import Video
 from .serializers import UserSerializer, VideoSerializer
 from django.apps import apps
+from django.contrib.auth.models import User
+from django.apps import apps
 
 logger = logging.getLogger(__name__)
 
@@ -142,15 +144,21 @@ def change_password(request):
 @api_view(['GET'])
 @permission_classes([IsAdminUser])
 def admin_dashboard(request):
-    models = apps.get_models()
     data = {}
-    for model in models:
-        if model._meta.app_label == 'api' or model._meta.model_name in ['user', 'video']:
-            serializer_class = globals().get(f"{model.__name__}Serializer")
-            if serializer_class:
-                queryset = model.objects.all()
-                serializer = serializer_class(queryset, many=True)
-                data[model._meta.model_name] = serializer.data
+    
+    # Handle User model separately
+    user_serializer = UserSerializer(User.objects.all(), many=True)
+    data['user'] = user_serializer.data
+    
+    # Handle other models in the api app
+    api_models = apps.get_app_config('api').get_models()
+    for model in api_models:
+        serializer_class = globals().get(f"{model.__name__}Serializer")
+        if serializer_class:
+            queryset = model.objects.all()
+            serializer = serializer_class(queryset, many=True)
+            data[model._meta.model_name] = serializer.data
+    
     return Response(data)
 
 @api_view(['POST'])
@@ -190,8 +198,12 @@ def delete_user(request, pk):
 @api_view(['PUT'])
 @permission_classes([IsAdminUser])
 def update_item(request, model_name, pk):
-    model = apps.get_model(app_label='api', model_name=model_name)
-    serializer_class = globals().get(f"{model.__name__}Serializer")
+    if model_name.lower() == 'user':
+        model = User
+        serializer_class = UserSerializer
+    else:
+        model = apps.get_model(app_label='api', model_name=model_name)
+        serializer_class = globals().get(f"{model.__name__}Serializer")
     
     if not serializer_class:
         return Response({"error": "Model not found"}, status=status.HTTP_404_NOT_FOUND)
@@ -210,7 +222,10 @@ def update_item(request, model_name, pk):
 @api_view(['DELETE'])
 @permission_classes([IsAdminUser])
 def delete_item(request, model_name, pk):
-    model = apps.get_model(app_label='api', model_name=model_name)
+    if model_name.lower() == 'user':
+        model = User
+    else:
+        model = apps.get_model(app_label='api', model_name=model_name)
     
     try:
         item = model.objects.get(pk=pk)
