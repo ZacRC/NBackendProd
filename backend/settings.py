@@ -26,7 +26,7 @@ SECRET_KEY = 'django-insecure-cfs)k6qb*%7#fjp^x732pb-mf=b2!+)f*9ip#vwb-o%@u_xgas
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['https://creatorgiveaways.world', 'localhost:3000']
+ALLOWED_HOSTS = ['https://creatorgiveaways.world', '157.230.234.50', 'creatorgiveaways.world']
 
 
 # Application definition
@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',
     'corsheaders',
     'api',
+    'rest_framework_simplejwt.token_blacklist',
 ]
 
 MIDDLEWARE = [
@@ -135,7 +136,6 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 CORS_ALLOWED_ORIGINS = [
     'https://testprod142.netlify.app',  # Your frontend URL
-    'http://localhost:3000',  # Your l frontend URL
 ]
 
 CORS_ALLOW_HEADERS = [
@@ -157,8 +157,14 @@ REST_FRAMEWORK = {
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ],
     'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.AllowAny',
+        'rest_framework.permissions.IsAuthenticated',
     ],
+}
+
+SIMPLE_JWT = {
+    'AUTH_HEADER_TYPES': ('Bearer',),
+    'USER_ID_FIELD': 'id',
+    'USER_ID_CLAIM': 'user_id',
 }
 
 MEDIA_URL = '/media/'
