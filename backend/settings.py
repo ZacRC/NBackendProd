@@ -95,6 +95,9 @@ DATABASES = {
 # Add this to ensure that Django uses SSL when connecting to the database
 DATABASES['default']['OPTIONS'] = {'sslmode': 'require'}
 
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',
+]
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
@@ -225,3 +228,4 @@ LOGGING = {
         },
     },
 }
+

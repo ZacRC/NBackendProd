@@ -25,14 +25,16 @@ def register(request):
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['POST'])
+@permission_classes([AllowAny])  # Add this line
 def login(request):
     logger.debug(f"Login request data: {request.data}")
     serializer = LoginSerializer(data=request.data)
     if serializer.is_valid():
-        user_data = serializer.validated_data
+        user = serializer.validated_data['user']
+        refresh = RefreshToken.for_user(user)
         response_data = {
-            'refresh': user_data['refresh'],
-            'access': user_data['access'],
+            'refresh': str(refresh),
+            'access': str(refresh.access_token),
         }
         logger.debug(f"Login response data: {response_data}")
         return Response(response_data)
