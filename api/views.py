@@ -57,6 +57,7 @@ def register(request):
         try:
             with transaction.atomic():
                 user = serializer.save()
+                UserProfile.objects.get_or_create(user=user)
                 logger.info(f"User registered successfully: {user.username}")
                 return Response({"message": "User registered successfully"}, status=status.HTTP_201_CREATED)
         except Exception as e:

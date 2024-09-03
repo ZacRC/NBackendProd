@@ -173,6 +173,9 @@ CORS_ALLOW_HEADERS = [
     'x-requested-with',
 ]
 
+# Add this line to allow all headers
+CORS_ALLOW_ALL_HEADERS = True
+
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework_simplejwt.authentication.JWTAuthentication',
