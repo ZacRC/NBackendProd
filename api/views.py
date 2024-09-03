@@ -3,7 +3,7 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from .serializers import RegisterSerializer, LoginSerializer, VideoSerializer
 from .models import Video
 import os
@@ -13,6 +13,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 @api_view(['POST'])
+@permission_classes([AllowAny])
 def register(request):
     logger.debug(f"Register request data: {request.data}")
     serializer = RegisterSerializer(data=request.data)
@@ -39,6 +40,7 @@ def login(request):
     return Response(serializer.errors, status=status.HTTP_401_UNAUTHORIZED)
 
 @api_view(['POST'])
+@permission_classes([IsAuthenticated])
 def logout(request):
     logger.debug(f"Logout request data: {request.data}")
     try:
@@ -78,6 +80,7 @@ def transcribe_video(video_path):
     return result['text']
 
 @api_view(['GET'])
+@permission_classes([AllowAny])
 def test_api(request):
     logger.debug("API test endpoint called")
     return Response({"message": "API confirmed"}, status=status.HTTP_200_OK)

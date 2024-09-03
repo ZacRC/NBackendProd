@@ -83,10 +83,17 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'postgres',
+        'USER': 'postgres.hrlcxabwygwztmkeuhun',
+        'PASSWORD': 'Zc126922211zc!',
+        'HOST': 'aws-0-us-east-2.pooler.supabase.com',
+        'PORT': '6543',
     }
 }
+
+# Add this to ensure that Django uses SSL when connecting to the database
+DATABASES['default']['OPTIONS'] = {'sslmode': 'require'}
 
 
 # Password validation
@@ -136,7 +143,8 @@ STATICFILES_DIRS = [
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 CORS_ALLOWED_ORIGINS = [
-    'https://testprod142.netlify.app',  # Your frontend URL
+    'https://testprod142.netlify.app',
+    'http://localhost:3000',  # Add this for local development
 ]
 
 CORS_ALLOW_HEADERS = [
