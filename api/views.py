@@ -178,7 +178,7 @@ def admin_dashboard(request):
         'videos_uploaded_last_7_days': Video.objects.filter(uploaded_at__gte=seven_days_ago).count(),
     }
 
-    # Add page visit analytics
+    # Update page visit analytics to include anonymous visits
     page_visits = UserActivity.objects.filter(
         activity_type='page_visit',
         timestamp__gte=seven_days_ago
@@ -237,13 +237,21 @@ def delete_item(request, model_name, pk):
     return Response(status=status.HTTP_204_NO_CONTENT)
 
 @api_view(['POST'])
-@permission_classes([IsAuthenticated])
+@permission_classes([AllowAny])
 def track_user_activity(request):
     activity_type = request.data.get('activity_type')
     details = request.data.get('details', {})
+    anonymous = request.data.get('anonymous', False)
+    
+    if not anonymous:
+        if not request.user.is_authenticated:
+            return Response({"error": "Authentication required"}, status=status.HTTP_401_UNAUTHORIZED)
+        user = request.user
+    else:
+        user = None
     
     UserActivity.objects.create(
-        user=request.user,
+        user=user,
         activity_type=activity_type,
         details=details
     )
