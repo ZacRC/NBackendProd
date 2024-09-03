@@ -55,6 +55,9 @@ def logout(request):
         token.blacklist()
         logger.debug("Logout successful")
         return Response({"detail": "Successfully logged out."}, status=status.HTTP_200_OK)
+    except TokenError as e:
+        logger.debug(f"Logout error: {e}")
+        return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
     except Exception as e:
         logger.debug(f"Logout error: {e}")
         return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
