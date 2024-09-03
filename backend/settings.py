@@ -238,3 +238,9 @@ LOGGING = {
     },
 }
 
+# Add these to your existing settings
+MAILJET_API_KEY = '97b6539ef5a2a3eff5b2af0344ba9c74'
+MAILJET_SECRET_KEY = '2d99b34254597c4e07e61eff689a8ae6'
+EMAIL_BACKEND = 'django_mailjet.backends.MailjetBackend'
+DEFAULT_FROM_EMAIL = '1234rack1234@gmail.com'
+

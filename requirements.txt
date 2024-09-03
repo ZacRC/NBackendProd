@@ -12,3 +12,4 @@ django-cors-headers
 whisper
 django-storages
 boto3
+django-mailjet==0.3.1

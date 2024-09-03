@@ -32,6 +32,10 @@ from .serializers import UserActivitySerializer, AdminDashboardAnalyticsSerializ
 
 logger = logging.getLogger(__name__)
 
+from .utils import generate_reset_token, send_reset_email
+from django.contrib.auth.models import User
+from rest_framework.exceptions import NotFound
+
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def register(request):
@@ -257,3 +261,39 @@ def track_user_activity(request):
     )
     
     return Response({"message": "Activity tracked successfully"}, status=status.HTTP_201_CREATED)
+
+# Add these new views
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def request_password_reset(request):
+    email = request.data.get('email')
+    try:
+        user = User.objects.get(email=email)
+    except User.DoesNotExist:
+        raise NotFound("No user found with this email address.")
+
+    reset_token = generate_reset_token()
+    user.profile.reset_token = reset_token
+    user.profile.save()
+
+    send_reset_email(email, reset_token)
+
+    return Response({"message": "Password reset email sent."}, status=status.HTTP_200_OK)
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def reset_password(request):
+    token = request.data.get('token')
+    new_password = request.data.get('new_password')
+
+    try:
+        user = User.objects.get(profile__reset_token=token)
+    except User.DoesNotExist:
+        raise NotFound("Invalid or expired reset token.")
+
+    user.set_password(new_password)
+    user.profile.reset_token = None
+    user.save()
+    user.profile.save()
+
+    return Response({"message": "Password reset successful."}, status=status.HTTP_200_OK)
