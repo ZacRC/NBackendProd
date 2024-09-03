@@ -43,6 +43,7 @@ from django.contrib.auth.models import User
 from rest_framework.exceptions import NotFound
 
 @api_view(['POST'])
+@permission_classes([AllowAny])
 def register(request):
     serializer = RegisterSerializer(data=request.data)
     if serializer.is_valid():
@@ -54,6 +55,7 @@ def register(request):
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['POST'])
+@permission_classes([AllowAny])
 def login(request):
     username = request.data.get('username')
     password = request.data.get('password')
@@ -248,7 +250,7 @@ def delete_item(request, model_name, pk):
     return Response(status=status.HTTP_204_NO_CONTENT)
 
 @api_view(['POST'])
-@permission_classes([IsAuthenticated])
+@permission_classes([AllowAny])
 def track_user_activity(request):
     activity_type = request.data.get('activity_type')
     details = request.data.get('details')

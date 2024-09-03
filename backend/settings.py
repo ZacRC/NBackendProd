@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'api',
     'rest_framework_simplejwt.token_blacklist',
+    'django.contrib.staticfiles',
 ]
 
 MIDDLEWARE = [
@@ -180,6 +181,7 @@ REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated',
     ],
+    'UNAUTHENTICATED_USER': None,
 }
 
 SIMPLE_JWT = {
