@@ -10,43 +10,21 @@ import os
 import whisper
 import logging
 from django.contrib.auth.models import User
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.response import Response
-from rest_framework import status
-from django.contrib.auth.models import User
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAdminUser
-from rest_framework.response import Response
-from rest_framework import status
-from .models import Video
-from .serializers import UserSerializer, VideoSerializer
-from django.apps import apps
-from django.contrib.auth.models import User
-from django.apps import apps
 from django.utils import timezone
 from datetime import timedelta
 from django.db.models import Count
-from .models import UserActivity
-from .serializers import UserActivitySerializer, AdminDashboardAnalyticsSerializer
-from .models import UserProfile
-from rest_framework import status
-from rest_framework.response import Response
-from rest_framework.decorators import api_view
-from .serializers import RegisterSerializer
-from rest_framework.permissions import AllowAny
-from .serializers import RegisterSerializer
 from django.db import transaction
-import logging
 from django.contrib.auth import get_user_model
+from .utils import generate_reset_token, send_reset_email
+from rest_framework.exceptions import NotFound
+from django.apps import apps
+
 
 logger = logging.getLogger(__name__)
 
 User = get_user_model()
 
-from .utils import generate_reset_token, send_reset_email
-from django.contrib.auth.models import User
-from rest_framework.exceptions import NotFound
+
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
@@ -55,11 +33,9 @@ def register(request):
     serializer = RegisterSerializer(data=request.data)
     if serializer.is_valid():
         try:
-            with transaction.atomic():
-                user = serializer.save()
-                UserProfile.objects.get_or_create(user=user)
-                logger.info(f"User registered successfully: {user.username}")
-                return Response({"message": "User registered successfully"}, status=status.HTTP_201_CREATED)
+            user = serializer.save()
+            logger.info(f"User registered successfully: {user.username}")
+            return Response({"message": "User registered successfully"}, status=status.HTTP_201_CREATED)
         except Exception as e:
             logger.error(f"Registration error: {str(e)}")
             return Response({"error": f"Registration failed: {str(e)}"}, status=status.HTTP_400_BAD_REQUEST)

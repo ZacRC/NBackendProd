@@ -1,13 +1,7 @@
-from django.contrib.auth import get_user_model
-from rest_framework import serializers
-from .models import Video, UserActivity, UserProfile  # Add UserProfile import here
-from rest_framework_simplejwt.tokens import RefreshToken
-from django.contrib.auth import authenticate
-from django.db import transaction
 from django.contrib.auth.models import User
+from rest_framework import serializers
 from django.contrib.auth.password_validation import validate_password
-
-User = get_user_model()
+from .models import Video, UserActivity  # Add UserActivity import here
 
 class RegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, required=True, validators=[validate_password])
@@ -23,7 +17,6 @@ class RegisterSerializer(serializers.ModelSerializer):
         return attrs
 
     def create(self, validated_data):
-        validated_data.pop('password2', None)
         user = User.objects.create_user(
             username=validated_data['username'],
             email=validated_data['email'],
