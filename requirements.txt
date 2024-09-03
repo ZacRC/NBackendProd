@@ -4,7 +4,6 @@ djangorestframework
 djangorestframework-simplejwt
 gunicorn
 pip                      
-rest_framework_simplejwt
 setuptools               
 sqlparse                 
 typing_extensions        
