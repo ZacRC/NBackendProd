@@ -9,6 +9,11 @@ from .models import Video
 import os
 import whisper
 import logging
+from django.contrib.auth.models import User
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework import status
 
 logger = logging.getLogger(__name__)
 
@@ -89,3 +94,39 @@ def transcribe_video(video_path):
 def test_api(request):
     logger.debug("API test endpoint called")
     return Response({"message": "API confirmed"}, status=status.HTTP_200_OK)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_user_info(request):
+    user = request.user
+    return Response({
+        'username': user.username,
+        'email': user.email,
+        'date_joined': user.date_joined
+    })
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def change_email(request):
+    user = request.user
+    new_email = request.data.get('new_email')
+    if new_email:
+        user.email = new_email
+        user.save()
+        return Response({'message': 'Email updated successfully'})
+    return Response({'error': 'New email is required'}, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def change_password(request):
+    user = request.user
+    current_password = request.data.get('current_password')
+    new_password = request.data.get('new_password')
+    if current_password and new_password:
+        if user.check_password(current_password):
+            user.set_password(new_password)
+            user.save()
+            return Response({'message': 'Password updated successfully'})
+        return Response({'error': 'Current password is incorrect'}, status=status.HTTP_400_BAD_REQUEST)
+    return Response({'error': 'Current and new passwords are required'}, status=status.HTTP_400_BAD_REQUEST)
