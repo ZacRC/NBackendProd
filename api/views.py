@@ -54,21 +54,23 @@ def register(request):
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['POST'])
-@permission_classes([AllowAny])  # Add this line
 def login(request):
-    logger.debug(f"Login request data: {request.data}")
-    serializer = LoginSerializer(data=request.data)
-    if serializer.is_valid():
-        user = serializer.validated_data['user']
+    username = request.data.get('username')
+    password = request.data.get('password')
+    user = authenticate(username=username, password=password)
+    if user:
         refresh = RefreshToken.for_user(user)
-        response_data = {
+        return Response({
             'refresh': str(refresh),
             'access': str(refresh.access_token),
-        }
-        logger.debug(f"Login response data: {response_data}")
-        return Response(response_data)
-    logger.debug(f"Login errors: {serializer.errors}")
-    return Response(serializer.errors, status=status.HTTP_401_UNAUTHORIZED)
+        })
+    else:
+        # Check if the user exists
+        try:
+            user = User.objects.get(username=username)
+            return Response({'error': 'Incorrect password'}, status=status.HTTP_401_UNAUTHORIZED)
+        except User.DoesNotExist:
+            return Response({'error': 'User does not exist'}, status=status.HTTP_401_UNAUTHORIZED)
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -246,7 +248,7 @@ def delete_item(request, model_name, pk):
     return Response(status=status.HTTP_204_NO_CONTENT)
 
 @api_view(['POST'])
-@permission_classes([AllowAny])
+@permission_classes([IsAuthenticated])
 def track_user_activity(request):
     activity_type = request.data.get('activity_type')
     details = request.data.get('details')
