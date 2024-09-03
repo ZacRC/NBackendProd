@@ -30,7 +30,11 @@ from django.db.models import Count
 from .models import UserActivity
 from .serializers import UserActivitySerializer, AdminDashboardAnalyticsSerializer
 from .models import UserProfile
-
+from rest_framework import status
+from rest_framework.response import Response
+from rest_framework.decorators import api_view
+from .serializers import RegisterSerializer
+import serializers
 
 logger = logging.getLogger(__name__)
 
@@ -39,15 +43,14 @@ from django.contrib.auth.models import User
 from rest_framework.exceptions import NotFound
 
 @api_view(['POST'])
-@permission_classes([AllowAny])
 def register(request):
-    logger.debug(f"Register request data: {request.data}")
     serializer = RegisterSerializer(data=request.data)
     if serializer.is_valid():
-        serializer.save()
-        logger.debug(f"Register response data: {serializer.data}")
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
-    logger.debug(f"Register errors: {serializer.errors}")
+        try:
+            user = serializer.save()
+            return Response({"message": "User registered successfully"}, status=status.HTTP_201_CREATED)
+        except serializers.ValidationError as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['POST'])

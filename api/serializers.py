@@ -1,8 +1,11 @@
 from django.contrib.auth.models import User
 from rest_framework import serializers
-from .models import Video, UserActivity  # Add UserActivity import here
+from .models import Video, UserActivity, UserProfile  # Add UserProfile import here
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import authenticate
+from django.db import transaction
+from django.contrib.auth.models import User
+from rest_framework import serializers
 
 class RegisterSerializer(serializers.ModelSerializer):
     class Meta:
@@ -10,13 +13,20 @@ class RegisterSerializer(serializers.ModelSerializer):
         fields = ('username', 'password', 'email')
         extra_kwargs = {'password': {'write_only': True}}
 
+    @transaction.atomic
     def create(self, validated_data):
-        user = User.objects.create_user(
-            username=validated_data['username'],
-            password=validated_data['password'],
-            email=validated_data['email']
-        )
-        return user
+        try:
+            user = User.objects.create_user(
+                username=validated_data['username'],
+                password=validated_data['password'],
+                email=validated_data['email']
+            )
+            UserProfile.objects.create(user=user)
+            return user
+        except Exception as e:
+            # Log the error
+            print(f"Error during user registration: {str(e)}")
+            raise serializers.ValidationError("Registration failed. Please try again.")
 
 class LoginSerializer(serializers.Serializer):
     username = serializers.CharField()
