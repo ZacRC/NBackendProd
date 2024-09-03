@@ -4,8 +4,8 @@ from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
-from .serializers import RegisterSerializer, LoginSerializer, VideoSerializer, UserSerializer
-from .models import Video
+from .serializers import RegisterSerializer, LoginSerializer, VideoSerializer, UserSerializer, UserActivitySerializer, AdminDashboardAnalyticsSerializer
+from .models import Video, UserActivity
 import os
 import whisper
 import logging

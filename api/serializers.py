@@ -1,6 +1,6 @@
 from django.contrib.auth.models import User
 from rest_framework import serializers
-from .models import Video
+from .models import Video, UserActivity  # Add UserActivity import here
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import authenticate
 
