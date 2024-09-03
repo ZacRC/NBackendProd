@@ -3,8 +3,8 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework.permissions import IsAuthenticated, AllowAny
-from .serializers import RegisterSerializer, LoginSerializer, VideoSerializer
+from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
+from .serializers import RegisterSerializer, LoginSerializer, VideoSerializer, UserSerializer
 from .models import Video
 import os
 import whisper
@@ -130,3 +130,51 @@ def change_password(request):
             return Response({'message': 'Password updated successfully'})
         return Response({'error': 'Current password is incorrect'}, status=status.HTTP_400_BAD_REQUEST)
     return Response({'error': 'Current and new passwords are required'}, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['GET'])
+@permission_classes([IsAdminUser])
+def admin_dashboard(request):
+    users = User.objects.all()
+    videos = Video.objects.all()
+    
+    user_data = UserSerializer(users, many=True).data
+    video_data = VideoSerializer(videos, many=True).data
+    
+    return Response({
+        'users': user_data,
+        'videos': video_data
+    })
+
+@api_view(['POST'])
+@permission_classes([IsAdminUser])
+def create_user(request):
+    serializer = UserSerializer(data=request.data)
+    if serializer.is_valid():
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['PUT'])
+@permission_classes([IsAdminUser])
+def update_user(request, pk):
+    try:
+        user = User.objects.get(pk=pk)
+    except User.DoesNotExist:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+    
+    serializer = UserSerializer(user, data=request.data, partial=True)
+    if serializer.is_valid():
+        serializer.save()
+        return Response(serializer.data)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['DELETE'])
+@permission_classes([IsAdminUser])
+def delete_user(request, pk):
+    try:
+        user = User.objects.get(pk=pk)
+    except User.DoesNotExist:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+    
+    user.delete()
+    return Response(status=status.HTTP_204_NO_CONTENT)

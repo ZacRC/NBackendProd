@@ -33,3 +33,9 @@ class VideoSerializer(serializers.ModelSerializer):
         model = Video
         fields = ('id', 'user', 'video_file', 'transcription', 'uploaded_at')
         read_only_fields = ('id', 'user', 'transcription', 'uploaded_at')
+
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ('id', 'username', 'email', 'is_staff', 'date_joined')
+        read_only_fields = ('id', 'date_joined')
