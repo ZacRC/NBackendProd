@@ -5,28 +5,28 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import authenticate
 from django.db import transaction
 from django.contrib.auth.models import User
-from rest_framework import serializers
+from django.contrib.auth.password_validation import validate_password
 
 class RegisterSerializer(serializers.ModelSerializer):
+    password = serializers.CharField(write_only=True, required=True, validators=[validate_password])
+    password2 = serializers.CharField(write_only=True, required=True)
+
     class Meta:
         model = User
-        fields = ('username', 'password', 'email')
-        extra_kwargs = {'password': {'write_only': True}}
+        fields = ('username', 'password', 'password2', 'email')
 
-    @transaction.atomic
+    def validate(self, attrs):
+        if attrs['password'] != attrs['password2']:
+            raise serializers.ValidationError({"password": "Password fields didn't match."})
+        return attrs
+
     def create(self, validated_data):
-        try:
-            user = User.objects.create_user(
-                username=validated_data['username'],
-                password=validated_data['password'],
-                email=validated_data['email']
-            )
-            UserProfile.objects.create(user=user)
-            return user
-        except Exception as e:
-            # Log the error
-            print(f"Error during user registration: {str(e)}")
-            raise serializers.ValidationError("Registration failed. Please try again.")
+        user = User.objects.create_user(
+            username=validated_data['username'],
+            email=validated_data['email'],
+            password=validated_data['password']
+        )
+        return user
 
 class LoginSerializer(serializers.Serializer):
     username = serializers.CharField()

@@ -45,33 +45,40 @@ from rest_framework.exceptions import NotFound
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def register(request):
+    logger.debug(f"Register request data: {request.data}")
     serializer = RegisterSerializer(data=request.data)
     if serializer.is_valid():
         try:
             user = serializer.save()
+            logger.info(f"User registered successfully: {user.username}")
             return Response({"message": "User registered successfully"}, status=status.HTTP_201_CREATED)
         except serializers.ValidationError as e:
+            logger.error(f"Registration validation error: {str(e)}")
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+    logger.error(f"Registration serializer errors: {serializer.errors}")
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def login(request):
+    logger.debug(f"Login request data: {request.data}")
     username = request.data.get('username')
     password = request.data.get('password')
     user = authenticate(username=username, password=password)
     if user:
         refresh = RefreshToken.for_user(user)
+        logger.info(f"User logged in successfully: {username}")
         return Response({
             'refresh': str(refresh),
             'access': str(refresh.access_token),
         })
     else:
-        # Check if the user exists
         try:
             user = User.objects.get(username=username)
+            logger.warning(f"Login attempt with incorrect password for user: {username}")
             return Response({'error': 'Incorrect password'}, status=status.HTTP_401_UNAUTHORIZED)
         except User.DoesNotExist:
+            logger.warning(f"Login attempt for non-existent user: {username}")
             return Response({'error': 'User does not exist'}, status=status.HTTP_401_UNAUTHORIZED)
 
 @api_view(['POST'])
@@ -254,7 +261,7 @@ def delete_item(request, model_name, pk):
 def track_user_activity(request):
     activity_type = request.data.get('activity_type')
     details = request.data.get('details')
-    user = request.user if request.user.is_authenticated else None
+    user = request.user if request.user and request.user.is_authenticated else None
 
     UserActivity.objects.create(
         user=user,

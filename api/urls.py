@@ -1,10 +1,13 @@
 from django.urls import path
 from . import views
+from rest_framework_simplejwt.views import TokenRefreshView
 
 urlpatterns = [
-    path('register/', views.register),
-    path('login/', views.login),
-    path('logout/', views.logout),
+    path('register/', views.register, name='register'),
+    path('login/', views.login, name='login'),
+    path('logout/', views.logout, name='logout'),
+    path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    path('test/', views.test_api, name='test_api'),
     path('upload_video/', views.upload_video),
     path('test/', views.test_api),
     path('user_info/', views.get_user_info),
@@ -15,5 +18,4 @@ urlpatterns = [
     path('admin/<str:model_name>/delete/<int:pk>/', views.delete_item),
     path('track_activity/', views.track_user_activity),
     path('request-password-reset/', views.request_password_reset),
-    path('reset-password/', views.reset_password),
-]
+    path('reset-password/', views.reset_password),]
