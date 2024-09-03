@@ -8,3 +8,12 @@ class Video(models.Model):
     video_file = models.FileField(upload_to='videos/')
     transcription = models.TextField(blank=True, null=True)
     uploaded_at = models.DateTimeField(auto_now_add=True)
+
+class UserActivity(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    activity_type = models.CharField(max_length=50)  # e.g., 'login', 'page_visit', 'feature_use'
+    timestamp = models.DateTimeField(auto_now_add=True)
+    details = models.JSONField(null=True, blank=True)  # For storing additional activity details
+
+    def __str__(self):
+        return f"{self.user.username} - {self.activity_type} - {self.timestamp}"

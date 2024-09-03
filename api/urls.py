@@ -13,4 +13,5 @@ urlpatterns = [
     path('admin/dashboard/', views.admin_dashboard),
     path('admin/<str:model_name>/update/<int:pk>/', views.update_item),
     path('admin/<str:model_name>/delete/<int:pk>/', views.delete_item),
+    path('track_activity/', views.track_user_activity),
 ]

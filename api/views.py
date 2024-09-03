@@ -24,6 +24,11 @@ from .serializers import UserSerializer, VideoSerializer
 from django.apps import apps
 from django.contrib.auth.models import User
 from django.apps import apps
+from django.utils import timezone
+from datetime import timedelta
+from django.db.models import Count
+from .models import UserActivity
+from .serializers import UserActivitySerializer, AdminDashboardAnalyticsSerializer
 
 logger = logging.getLogger(__name__)
 
@@ -159,6 +164,22 @@ def admin_dashboard(request):
             serializer = serializer_class(queryset, many=True)
             data[model._meta.model_name] = serializer.data
     
+    # Add user activity data
+    user_activity = UserActivity.objects.all().order_by('-timestamp')[:100]  # Get last 100 activities
+    user_activity_serializer = UserActivitySerializer(user_activity, many=True)
+    data['user_activity'] = user_activity_serializer.data
+
+    # Add analytics data
+    seven_days_ago = timezone.now() - timedelta(days=7)
+    analytics_data = {
+        'total_users': User.objects.count(),
+        'active_users_last_7_days': UserActivity.objects.filter(timestamp__gte=seven_days_ago).values('user').distinct().count(),
+        'total_videos': Video.objects.count(),
+        'videos_uploaded_last_7_days': Video.objects.filter(uploaded_at__gte=seven_days_ago).count(),
+    }
+    analytics_serializer = AdminDashboardAnalyticsSerializer(analytics_data)
+    data['analytics'] = analytics_serializer.data
+
     return Response(data)
 
 @api_view(['PUT'])
@@ -200,3 +221,17 @@ def delete_item(request, model_name, pk):
     
     item.delete()
     return Response(status=status.HTTP_204_NO_CONTENT)
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def track_user_activity(request):
+    activity_type = request.data.get('activity_type')
+    details = request.data.get('details', {})
+    
+    UserActivity.objects.create(
+        user=request.user,
+        activity_type=activity_type,
+        details=details
+    )
+    
+    return Response({"message": "Activity tracked successfully"}, status=status.HTTP_201_CREATED)

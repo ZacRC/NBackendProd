@@ -50,3 +50,16 @@ class UserSerializer(serializers.ModelSerializer):
             password = validated_data.pop('password')
             instance.set_password(password)
         return super().update(instance, validated_data)
+
+class UserActivitySerializer(serializers.ModelSerializer):
+    username = serializers.CharField(source='user.username', read_only=True)
+
+    class Meta:
+        model = UserActivity
+        fields = ('id', 'username', 'activity_type', 'timestamp', 'details')
+
+class AdminDashboardAnalyticsSerializer(serializers.Serializer):
+    total_users = serializers.IntegerField()
+    active_users_last_7_days = serializers.IntegerField()
+    total_videos = serializers.IntegerField()
+    videos_uploaded_last_7_days = serializers.IntegerField()
