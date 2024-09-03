@@ -180,6 +180,19 @@ def admin_dashboard(request):
     analytics_serializer = AdminDashboardAnalyticsSerializer(analytics_data)
     data['analytics'] = analytics_serializer.data
 
+    # Add page visit analytics
+    page_visits = UserActivity.objects.filter(
+        activity_type='page_visit',
+        timestamp__gte=seven_days_ago
+    ).values('details__page').annotate(count=Count('id')).order_by('-count')
+
+    page_visit_data = [
+        {'page': item['details__page'], 'visits': item['count']}
+        for item in page_visits
+    ]
+
+    analytics_data['page_visits'] = page_visit_data
+
     return Response(data)
 
 @api_view(['PUT'])
