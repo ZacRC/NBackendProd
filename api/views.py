@@ -29,6 +29,8 @@ from datetime import timedelta
 from django.db.models import Count
 from .models import UserActivity
 from .serializers import UserActivitySerializer, AdminDashboardAnalyticsSerializer
+from .models import UserProfile
+
 
 logger = logging.getLogger(__name__)
 
@@ -262,7 +264,6 @@ def track_user_activity(request):
     
     return Response({"message": "Activity tracked successfully"}, status=status.HTTP_201_CREATED)
 
-# Add these new views
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def request_password_reset(request):
@@ -273,8 +274,9 @@ def request_password_reset(request):
         raise NotFound("No user found with this email address.")
 
     reset_token = generate_reset_token()
-    user.profile.reset_token = reset_token
-    user.profile.save()
+    profile, created = UserProfile.objects.get_or_create(user=user)
+    profile.reset_token = reset_token
+    profile.save()
 
     send_reset_email(email, reset_token)
 
@@ -287,13 +289,14 @@ def reset_password(request):
     new_password = request.data.get('new_password')
 
     try:
-        user = User.objects.get(profile__reset_token=token)
-    except User.DoesNotExist:
+        profile = UserProfile.objects.get(reset_token=token)
+        user = profile.user
+    except UserProfile.DoesNotExist:
         raise NotFound("Invalid or expired reset token.")
 
     user.set_password(new_password)
-    user.profile.reset_token = None
+    profile.reset_token = None
     user.save()
-    user.profile.save()
+    profile.save()
 
     return Response({"message": "Password reset successful."}, status=status.HTTP_200_OK)
