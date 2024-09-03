@@ -28,35 +28,32 @@ def login(request):
     logger.debug(f"Login request data: {request.data}")
     serializer = LoginSerializer(data=request.data)
     if serializer.is_valid():
-        user = authenticate(
-            username=serializer.validated_data['username'],
-            password=serializer.validated_data['password']
-        )
-        if user is not None:
-            refresh = RefreshToken.for_user(user)
-            response_data = {
-                'refresh': str(refresh),
-                'access': str(refresh.access_token),
-            }
-            logger.debug(f"Login response data: {response_data}")
-            return Response(response_data)
-        logger.debug("Invalid credentials")
-        return Response({'detail': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
+        user_data = serializer.validated_data
+        response_data = {
+            'refresh': user_data['refresh'],
+            'access': user_data['access'],
+        }
+        logger.debug(f"Login response data: {response_data}")
+        return Response(response_data)
     logger.debug(f"Login errors: {serializer.errors}")
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    return Response(serializer.errors, status=status.HTTP_401_UNAUTHORIZED)
 
 @api_view(['POST'])
 def logout(request):
     logger.debug(f"Logout request data: {request.data}")
     try:
-        refresh_token = request.data['refresh']
+        refresh_token = request.data.get('refresh')
+        if not refresh_token:
+            logger.debug("Refresh token not provided")
+            return Response({"error": "Refresh token not provided"}, status=status.HTTP_400_BAD_REQUEST)
+        
         token = RefreshToken(refresh_token)
         token.blacklist()
         logger.debug("Logout successful")
-        return Response(status=status.HTTP_205_RESET_CONTENT)
+        return Response({"detail": "Successfully logged out."}, status=status.HTTP_200_OK)
     except Exception as e:
         logger.debug(f"Logout error: {e}")
-        return Response(status=status.HTTP_400_BAD_REQUEST)
+        return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])

@@ -1,6 +1,7 @@
 from django.contrib.auth.models import User
 from rest_framework import serializers
 from .models import Video
+from rest_framework_simplejwt.tokens import RefreshToken
 
 class RegisterSerializer(serializers.ModelSerializer):
     class Meta:
@@ -19,6 +20,17 @@ class RegisterSerializer(serializers.ModelSerializer):
 class LoginSerializer(serializers.Serializer):
     username = serializers.CharField()
     password = serializers.CharField()
+
+    def validate(self, data):
+        user = authenticate(**data)
+        if user and user.is_active:
+            refresh = RefreshToken.for_user(user)
+            return {
+                'user': user,
+                'refresh': str(refresh),
+                'access': str(refresh.access_token)
+            }
+        raise serializers.ValidationError("Incorrect Credentials")
 
 class VideoSerializer(serializers.ModelSerializer):
     class Meta:
