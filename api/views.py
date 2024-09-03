@@ -177,6 +177,20 @@ def admin_dashboard(request):
         'total_videos': Video.objects.count(),
         'videos_uploaded_last_7_days': Video.objects.filter(uploaded_at__gte=seven_days_ago).count(),
     }
+
+    # Add page visit analytics
+    page_visits = UserActivity.objects.filter(
+        activity_type='page_visit',
+        timestamp__gte=seven_days_ago
+    ).values('details__page').annotate(count=Count('id')).order_by('-count')
+
+    page_visit_data = [
+        {'page': item['details__page'], 'visits': item['count']}
+        for item in page_visits
+    ]
+
+    analytics_data['page_visits'] = page_visit_data
+
     analytics_serializer = AdminDashboardAnalyticsSerializer(analytics_data)
     data['analytics'] = analytics_serializer.data
 
