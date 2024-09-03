@@ -49,12 +49,15 @@ def register(request):
     serializer = RegisterSerializer(data=request.data)
     if serializer.is_valid():
         try:
-            user = serializer.save()
-            logger.info(f"User registered successfully: {user.username}")
-            return Response({"message": "User registered successfully"}, status=status.HTTP_201_CREATED)
-        except serializers.ValidationError as e:
-            logger.error(f"Registration validation error: {str(e)}")
-            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+            with transaction.atomic():
+                user = serializer.save()
+                # Create UserProfile here if it's not being created by the signal
+                UserProfile.objects.get_or_create(user=user)
+                logger.info(f"User registered successfully: {user.username}")
+                return Response({"message": "User registered successfully"}, status=status.HTTP_201_CREATED)
+        except Exception as e:
+            logger.error(f"Registration error: {str(e)}")
+            return Response({"error": f"Registration failed: {str(e)}"}, status=status.HTTP_400_BAD_REQUEST)
     logger.error(f"Registration serializer errors: {serializer.errors}")
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 

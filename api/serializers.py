@@ -21,12 +21,16 @@ class RegisterSerializer(serializers.ModelSerializer):
         return attrs
 
     def create(self, validated_data):
-        user = User.objects.create_user(
-            username=validated_data['username'],
-            email=validated_data['email'],
-            password=validated_data['password']
-        )
-        return user
+        validated_data.pop('password2', None)
+        try:
+            user = User.objects.create_user(
+                username=validated_data['username'],
+                email=validated_data['email'],
+                password=validated_data['password']
+            )
+            return user
+        except Exception as e:
+            raise serializers.ValidationError(f"User creation failed: {str(e)}")
 
 class LoginSerializer(serializers.Serializer):
     username = serializers.CharField()
