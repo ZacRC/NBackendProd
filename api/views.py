@@ -246,22 +246,15 @@ def delete_item(request, model_name, pk):
 @permission_classes([AllowAny])
 def track_user_activity(request):
     activity_type = request.data.get('activity_type')
-    details = request.data.get('details', {})
-    anonymous = request.data.get('anonymous', False)
-    
-    if not anonymous:
-        if not request.user.is_authenticated:
-            return Response({"error": "Authentication required"}, status=status.HTTP_401_UNAUTHORIZED)
-        user = request.user
-    else:
-        user = None
-    
+    details = request.data.get('details')
+    user = request.user if request.user.is_authenticated else None
+
     UserActivity.objects.create(
         user=user,
         activity_type=activity_type,
         details=details
     )
-    
+
     return Response({"message": "Activity tracked successfully"}, status=status.HTTP_201_CREATED)
 
 @api_view(['POST'])
