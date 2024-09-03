@@ -55,6 +55,11 @@ def login(request):
         return Response({
             'refresh': str(refresh),
             'access': str(refresh.access_token),
+            'user': {
+                'id': user.id,
+                'username': user.username,
+                'email': user.email
+            }
         })
     else:
         try:
