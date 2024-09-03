@@ -49,17 +49,14 @@ def login(request):
 def logout(request):
     logger.debug(f"Logout request data: {request.data}")
     try:
-        refresh_token = request.data.get('refresh')
-        if not refresh_token:
-            logger.debug("Refresh token not provided")
-            return Response({"error": "Refresh token not provided"}, status=status.HTTP_400_BAD_REQUEST)
+        refresh_token = request.data['refresh']
         token = RefreshToken(refresh_token)
         token.blacklist()
         logger.debug("Logout successful")
-        return Response({"detail": "Successfully logged out."}, status=status.HTTP_200_OK)
+        return Response(status=status.HTTP_205_RESET_CONTENT)
     except Exception as e:
         logger.debug(f"Logout error: {e}")
-        return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
