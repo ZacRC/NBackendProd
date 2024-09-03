@@ -8,7 +8,6 @@ from .serializers import RegisterSerializer, LoginSerializer, VideoSerializer
 from .models import Video
 import os
 import whisper
-from django.conf import settings
 import logging
 
 logger = logging.getLogger(__name__)
@@ -80,3 +79,8 @@ def transcribe_video(video_path):
     result = model.transcribe(video_path)
     os.remove(video_path)  # Clean up the uploaded file
     return result['text']
+
+@api_view(['GET'])
+def test_api(request):
+    logger.debug("API test endpoint called")
+    return Response({"message": "API confirmed"}, status=status.HTTP_200_OK)

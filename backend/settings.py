@@ -26,7 +26,7 @@ SECRET_KEY = 'django-insecure-cfs)k6qb*%7#fjp^x732pb-mf=b2!+)f*9ip#vwb-o%@u_xgas
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['creatorgiveaways.world']
+ALLOWED_HOSTS = ['https://creatorgiveaways.world', 'localhost:3000']
 
 
 # Application definition
@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    'djangorestframework-simplejwt',
     'rest_framework_simplejwt.token_blacklist',
     'corsheaders',
     'api',
@@ -130,6 +131,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 CORS_ALLOWED_ORIGINS = [
     'https://testprod142.netlify.app',  # Your frontend URL
+    'http://localhost:3000',  # Your l frontend URL
 ]
 
 CORS_ALLOW_HEADERS = [
