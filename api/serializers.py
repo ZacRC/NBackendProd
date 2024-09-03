@@ -63,4 +63,3 @@ class AdminDashboardAnalyticsSerializer(serializers.Serializer):
     active_users_last_7_days = serializers.IntegerField()
     total_videos = serializers.IntegerField()
     videos_uploaded_last_7_days = serializers.IntegerField()
-    page_visits = serializers.ListField(child=serializers.DictField())
