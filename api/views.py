@@ -18,7 +18,7 @@ from django.contrib.auth import get_user_model
 from .utils import generate_reset_token, send_reset_email
 from rest_framework.exceptions import NotFound
 from django.apps import apps
-
+from rest_framework_simplejwt.exceptions import TokenError
 
 logger = logging.getLogger(__name__)
 
