@@ -18,4 +18,6 @@ urlpatterns = [
     path('admin/<str:model_name>/delete/<int:pk>/', views.delete_item),
     path('track_activity/', views.track_user_activity),
     path('request-password-reset/', views.request_password_reset),
-    path('reset-password/', views.reset_password),]
+    path('reset-password/', views.reset_password),
+    path('generate-code/', views.generate_code, name='generate_code'),
+]

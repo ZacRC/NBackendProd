@@ -19,6 +19,7 @@ from .utils import generate_reset_token, send_reset_email
 from rest_framework.exceptions import NotFound
 from django.apps import apps
 from rest_framework_simplejwt.exceptions import TokenError
+import anthropic
 
 logger = logging.getLogger(__name__)
 
@@ -302,3 +303,29 @@ def reset_password(request):
 def dashboard(request):
     # Your dashboard logic here
     return Response({"message": "Welcome to the dashboard"})
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def generate_code(request):
+    prompt = request.data.get('prompt')
+    if not prompt:
+        return Response({"error": "Prompt is required"}, status=status.HTTP_400_BAD_REQUEST)
+
+    try:
+        client = anthropic.Anthropic(
+            api_key="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",
+        )
+
+        message = client.messages.create(
+            model="claude-3-5-sonnet-20240620",
+            max_tokens=8192,
+            temperature=0,
+            system="You are an AI assistant specialized in generating ReactJS frontend designs based on user prompts. Your task is to generate and return only the code needed to implement the design, using Tailwind CSS for styling.\n\nGuidelines:\n\nCode-Only Output: Provide the complete ReactJS code required to implement the frontend design, including HTML, Tailwind CSS classes, and any necessary JavaScript. Do not include any explanations, comments, or non-code content in your response.\nAdvanced Styling: Use Tailwind CSS to go above and beyond with styling. Leverage Tailwind's utility classes to create polished, dynamic, and visually appealing user interfaces, including animations and transitions.\nComponent Structure: Organize the code into well-structured, reusable React components, ensuring that the design is modular and easy to maintain.\nResponsiveness: Ensure the design is fully responsive, utilizing Tailwind's responsive utilities to adapt seamlessly to different screen sizes and devices.\nAnimations: Incorporate smooth, visually appealing animations and transitions, using Tailwind CSS and additional libraries if necessary, to enhance the user experience.\nDark Mode: When applicable, use Tailwind's dark mode features, incorporating gradients and high contrast for a modern aesthetic.\nIntuitive Interpretation: Interpret user prompts creatively and accurately, delivering a design that meets or exceeds their expectations, even if the prompt is vague or abstract.\nYour output should consist solely of the ReactJS code using Tailwind CSS necessary to implement the requested design.",
+            messages=[
+                {"role": "user", "content": prompt}
+            ]
+        )
+
+        return Response({"generated_code": message.content[0].text})
+    except Exception as e:
+        return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
