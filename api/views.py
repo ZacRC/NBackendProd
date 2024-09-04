@@ -296,3 +296,9 @@ def reset_password(request):
     profile.save()
 
     return Response({"message": "Password reset successful."}, status=status.HTTP_200_OK)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def dashboard(request):
+    # Your dashboard logic here
+    return Response({"message": "Welcome to the dashboard"})
